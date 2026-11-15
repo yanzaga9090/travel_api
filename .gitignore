@@ -1,0 +1,19 @@
+# ===== Нууц мэдээлэл — GitHub-д ХЭЗЭЭ Ч орохгүй =====
+.env
+.env.*
+!.env.example
+
+# ===== Python-ий түр файлууд =====
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ===== Mac, VS Code-ийн хог файлууд =====
+.DS_Store
+.vscode/
+
+# ===== Загвар =====
+# demand_model.joblib-ийг ЗААВАЛ оруулна. Энд *.joblib, models/ гэж бүү бич!
+# (зөвхөн .pkl төрлийн бусад загварыг оруулахгүй)
+*.pkl

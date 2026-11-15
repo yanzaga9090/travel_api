@@ -1,0 +1,16 @@
+# Нууц мэдээлэл image-д орохгүй
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+sql/
+create_admin.py
+tests/

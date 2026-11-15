@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Travel Админ</title>
+  <link rel="stylesheet" href="style.css?v=1794486036">
+</head>
+<body>
+  <!-- ===== Нэвтрэх хуудас ===== -->
+  <div class="login-page" id="login-view">
+    <main class="card">
+      <h1>Админ нэвтрэх</h1>
+      <form id="login-form" novalidate>
+        <label for="email">Имэйл</label>
+        <input id="email" type="email" autocomplete="username" required>
+
+        <label for="password">Нууц үг</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+
+        <p id="error" class="error" role="alert"></p>
+        <button type="submit" id="login-btn">Нэвтрэх</button>
+      </form>
+    </main>
+  </div>
+
+  <!-- ===== Админ самбар ===== -->
+  <div class="app hidden" id="app-view">
+    <aside class="sidebar">
+      <div class="brand">✈️ Travel Админ</div>
+      <nav id="menu">
+        <a href="#dashboard" data-page="dashboard">📊 Хяналт</a>
+        <a href="#tours"     data-page="tours">🗺️ Аялал</a>
+        <a href="#bookings"  data-page="bookings">📅 Захиалга</a>
+        <a href="#customers" data-page="customers">👥 Үйлчлүүлэгч</a>
+        <a href="#guides"    data-page="guides">🧭 Хөтөч</a>
+        <a href="#forecast"  data-page="forecast">📈 Эрэлт таамаглах</a>
+        <a href="#facebook"  data-page="facebook">📘 Facebook</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span id="admin-email"></span>
+        <button id="logout-btn" class="secondary">Гарах</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <h1 id="page-title">Хяналт</h1>
+      <div id="page-body"></div>
+    </main>
+  </div>
+
+  <script src="config.js?v=1794486036"></script>
+  <script src="crud.js?v=1794486036"></script>
+  <script src="app.js?v=1794486036"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+# =====================================================================
+#  Travel систем — 3 контейнер нэг дор: db + backend + frontend
+#
+#  Асаах:    docker compose up -d --build
+#  Унтраах:  docker compose down
+#
+#  Нууц мэдээлэл (нууц үг, JWT түлхүүр, EC2_IP) энэ файлд БИЧИГДЭХГҮЙ —
+#  хажууд байгаа .env файлаас ${...} хэлбэрээр автоматаар уншигдана.
+# =====================================================================
+
+services:                                   # Доор ажиллах контейнерүүдийн жагсаалт
+
+  # ------------------------------------------------------------------
+  #  1) db — PostgreSQL мэдээллийн сан
+  # ------------------------------------------------------------------
+  db:
+    image: postgres:16                      # Docker Hub-ийн бэлэн PostgreSQL 16 image
+    restart: unless-stopped                 # Унтарвал (сервер дахин асахад ч) өөрөө дахин асна
+    environment:                            # Контейнерт өгөх тохиргоо:
+      POSTGRES_USER: student                #   сангийн хэрэглэгчийн нэр
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?.env-д POSTGRES_PASSWORD бичнэ үү}  # нууц үг .env-ээс; байхгүй бол асахгүй
+      POSTGRES_DB: travel                   #   анх асахад үүсгэх сангийн нэр
+    volumes:
+      - pgdata:/var/lib/postgresql/data     # Өгөгдлийг "pgdata" volume-д хадгална → контейнер устсан ч алга болохгүй
+      - ./synthetic_data.sql:/docker-entrypoint-initdb.d/01_synthetic_data.sql:ro
+                                            # Энэ хавтсанд байгаа .sql файлыг postgres АНХ асахад (сан хоосон үед)
+                                            # автоматаар ажиллуулна. ":ro" = зөвхөн уншина
+    # ports: хэсэг САНААТАЙГААР байхгүй → сан интернэт рүү нээгдэхгүй,
+    #        зөвхөн доорх backend контейнер дотоод сүлжээгээр холбогдоно
+    healthcheck:                            # "Сан бэлэн үү?" гэж байнга шалгана
+      test: ["CMD-SHELL", "pg_isready -U student -d travel"]  # pg_isready = postgres-ийн бэлэн эсэх шалгагч
+      interval: 5s                          # 5 секунд тутам
+      timeout: 5s                           # 5 секундэд хариу өгөхгүй бол амжилтгүй
+      retries: 10                           # 10 удаа дараалан амжилтгүй бол "unhealthy"
+
+  # ------------------------------------------------------------------
+  #  2) backend — FastAPI сервер
+  # ------------------------------------------------------------------
+  backend:
+    build: ./travel-backend                 # ./travel-backend/Dockerfile-аар image-ээ өөрөө бүтээнэ
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://student:${POSTGRES_PASSWORD}@db:5432/travel
+                                            # "db" = дээрх service-ийн нэр. Compose дотоод сүлжээнд
+                                            # нэр нь өөрөө хаяг болдог (localhost биш!)
+      ALLOWED_ORIGINS: http://${EC2_IP:?.env-д EC2_IP бичнэ үү}
+                                            # CORS: зөвхөн http://<EC2 хаяг> (80 порт дахь frontend) зөвшөөрөгдөнө
+      JWT_SECRET: ${JWT_SECRET:?.env-д JWT_SECRET бичнэ үү}   # Токены нууц түлхүүр .env-ээс
+      MODEL_PATH: models/demand_model.joblib  # Эрэлтийн загварын зам (image дотор)
+    ports:
+      - "8000:8000"                         # "гадна:дотор" — компьютерийн 8000 → контейнерийн 8000
+                                            # (frontend браузераас http://ХАЯГ:8000 руу хандана)
+    depends_on:
+      db:
+        condition: service_healthy          # Сан бүрэн бэлэн болсны ДАРАА л backend асна
+
+  # ------------------------------------------------------------------
+  #  3) frontend — nginx вэб сервер (HTML, CSS, JS)
+  # ------------------------------------------------------------------
+  frontend:
+    image: nginx:alpine                     # Жижиг, хурдан nginx вэб сервер
+    restart: unless-stopped
+    volumes:
+      - ./travel-frontend:/usr/share/nginx/html:ro
+                                            # travel-frontend хавтсыг nginx-ийн вэб хавтас болгон холбоно
+                                            # → файлаа засахад контейнерийг дахин бүтээх шаардлагагүй
+    ports:
+      - "80:80"                             # Компьютерийн 80 порт → nginx. Хаяг: http://ХАЯГ (порт бичих хэрэггүй)
+    depends_on:
+      - backend                             # backend-ийн дараа асна
+
+# ----------------------------------------------------------------------
+volumes:
+  pgdata:                                   # db-ийн өгөгдөл хадгалагдах нэртэй volume (Docker өөрөө удирдана)
