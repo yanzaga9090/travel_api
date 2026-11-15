@@ -3,6 +3,19 @@
 .env.*
 !.env.example
 
+# ===== AWS түлхүүр, сервер рүү нэвтрэх түлхүүр =====
+.aws/
+credentials
+*accessKeys*.csv
+rootkey.csv
+new_user_credentials.csv
+*.pem
+*.key
+*.ppk
+*.tfstate
+*.tfstate.*
+.terraform/
+
 # ===== Python-ий түр файлууд =====
 __pycache__/
 *.pyc
